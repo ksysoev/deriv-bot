@@ -8,22 +8,3 @@ filename: "{{.InterfaceName | snakecase }}_mock.go"
 dir: "{{.InterfaceDir}}"
 mockname: "Mock{{.InterfaceName}}"
 packages:
-  github.com/ksysoev/make-it-public/pkg/edge:
-    interfaces:
-      ConnService:
-  github.com/ksysoev/make-it-public/pkg/core:
-    interfaces:
-      AuthRepo:
-      ConnManager:
-      ControlConn:
-  github.com/ksysoev/make-it-public/pkg/core/conn:
-    interfaces:
-      Request:
-      serverConn:
-      WithWriteCloser:
-  github.com/ksysoev/make-it-public/pkg/api:
-    interfaces:
-      Service:
-  github.com/ksysoev/make-it-public/pkg/revproxy:
-    interfaces:
-      ConnService:
