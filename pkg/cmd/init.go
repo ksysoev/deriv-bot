@@ -11,8 +11,8 @@ type BuildInfo struct {
 type cmdArgs struct {
 	LogLevel   string `mapstructure:"log_level"`
 	Version    string
-	TextFormat bool   `mapstructure:"log_text"`
 	ConfigPath string `mapstructure:"config_path"`
+	TextFormat bool   `mapstructure:"log_text"`
 }
 
 func InitCommand(build BuildInfo) cobra.Command {
