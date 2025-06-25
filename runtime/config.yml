@@ -1,0 +1,5 @@
+deriv:
+  endpoint: "wss://ws.derivws.com/websockets/v3"
+  app_id: 82539
+  origin: "https://algotrader.dev"
+

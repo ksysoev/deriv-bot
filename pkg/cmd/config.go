@@ -5,10 +5,13 @@ import (
 	"log/slog"
 	"strings"
 
+	"github.com/ksysoev/deriv-bot/pkg/prov/deriv"
 	"github.com/spf13/viper"
 )
 
-type appConfig struct{}
+type appConfig struct {
+	Deriv deriv.Config `mapstructure:"deriv"`
+}
 
 // loadConfig loads the application configuration from the specified file path and environment variables.
 // It uses the provided args structure to determine the configuration path.

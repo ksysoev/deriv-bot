@@ -1,9 +1,14 @@
 package deriv
 
 import (
+	"context"
 	"fmt"
+	"sync"
+	"time"
 
 	"github.com/ksysoev/deriv-api"
+	"github.com/ksysoev/deriv-api/schema"
+	"github.com/ksysoev/deriv-bot/pkg/core/signal"
 )
 
 const (
@@ -18,6 +23,7 @@ type Config struct {
 
 type API struct {
 	client *deriv.Client
+	wg     sync.WaitGroup
 }
 
 // New creates a new API instance using the provided configuration.
@@ -37,4 +43,49 @@ func New(cfg Config) (*API, error) {
 // Returns an error if disconnection fails.
 func (a *API) Close() {
 	a.client.Disconnect()
+	a.wg.Wait()
+}
+
+func (a *API) SubscribeToTicks(ctx context.Context, symbol string) (chan<- signal.Tick, error) {
+	req := schema.Ticks{Ticks: symbol}
+
+	_, sub, err := a.client.SubscribeTicks(ctx, req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to subscribe to ticks for symbol %s: %w", symbol, err)
+	}
+
+	subChan := sub.GetStream()
+
+	resChan := make(chan signal.Tick)
+
+	a.wg.Add(1)
+	go func() {
+		defer a.wg.Done()
+		defer sub.Forget()
+		defer close(resChan)
+
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case tick, ok := <-subChan:
+				if !ok {
+					return
+				}
+
+				epoch := time.Unix(int64(*tick.Tick.Epoch), 0)
+
+				t := signal.Tick{
+					Time:  epoch,
+					Quote: *tick.Tick.Quote,
+					Ask:   *tick.Tick.Ask,
+					Bid:   *tick.Tick.Bid,
+				}
+
+				resChan <- t
+			}
+		}
+	}()
+
+	return resChan, nil
 }
