@@ -46,7 +46,7 @@ func (a *API) Close() {
 	a.wg.Wait()
 }
 
-func (a *API) SubscribeToTicks(ctx context.Context, symbol string) (chan<- signal.Tick, error) {
+func (a *API) SubscribeToTicks(ctx context.Context, symbol string) (<-chan signal.Tick, error) {
 	req := schema.Ticks{Ticks: symbol}
 
 	_, sub, err := a.client.SubscribeTicks(ctx, req)

@@ -26,6 +26,10 @@ func InitCommand(build BuildInfo) cobra.Command {
 		Long:  "Service for running tranding bots and stream trading signal from markets data from Deriv API",
 	}
 
+	cmd.PersistentFlags().StringVar(&args.LogLevel, "log-level", "info", "log level (debug, info, warn, error)")
+	cmd.PersistentFlags().BoolVar(&args.TextFormat, "log-text", true, "log in text format, otherwise JSON")
+	cmd.PersistentFlags().StringVar(&args.ConfigPath, "config", "", "config path")
+
 	cmd.AddCommand(initRunCommand(args))
 
 	return cmd
