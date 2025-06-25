@@ -20,7 +20,9 @@ type API struct {
 	client *deriv.Client
 }
 
-// New initializes and returns a new API instance using the provided configuration or returns an error if creation fails.
+// New creates a new API instance using the provided configuration.
+// It validates the configuration and initializes a Deriv API client.
+// Returns the initialized API instance and an error if client creation fails or the configuration is invalid.
 func New(cfg Config) (*API, error) {
 	client, err := deriv.NewDerivAPI(cfg.Endpoint, cfg.AppID, defaultLanguage, cfg.Origin)
 	if err != nil {
@@ -28,4 +30,11 @@ func New(cfg Config) (*API, error) {
 	}
 
 	return &API{client: client}, nil
+}
+
+// Close releases all resources associated with the API instance.
+// It disconnects the underlying client and should be called to clean up properly.
+// Returns an error if disconnection fails.
+func (a *API) Close() {
+	a.client.Disconnect()
 }
