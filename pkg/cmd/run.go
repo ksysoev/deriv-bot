@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 
+	"github.com/ksysoev/deriv-bot/pkg/core/signal"
 	"github.com/ksysoev/deriv-bot/pkg/prov/deriv"
 )
 
@@ -25,7 +26,9 @@ func runAllServices(ctx context.Context, args *cmdArgs) error {
 
 	defer derivApi.Close()
 
-	sub, err := derivApi.SubscribeToTicks(ctx, "R_100")
+	marketSignals := signal.New(derivApi)
+
+	sub, err := marketSignals.SubscribeOnMarket(ctx, "R_100")
 	if err != nil {
 		return fmt.Errorf("failed to subscribe to ticks: %w", err)
 	}
