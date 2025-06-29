@@ -51,6 +51,7 @@ func (s *Service) ExecuteStrategy(ctx context.Context, token, symbol string, amo
 
 	for tick := range tickChan {
 		slog.Info("Received tick", slog.Any("tick", tick))
+
 		if eval(tick) {
 			_, err := s.tradingProv.Buy(ctx, symbol, amount, tick.Quote, 10)
 

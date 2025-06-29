@@ -11,7 +11,7 @@ import (
 // It uses the provided price, amount, and leverage to configure the order.
 // Accepts ctx for request lifecycle management, symbol, the asset's market symbol, amount as the quantity to buy, price for the transaction, and leverage specifying the multiplier.
 // Returns the contract ID of the placed buy order and an error if the order fails due to API issues or invalid parameters.
-func (a *API) Buy(ctx context.Context, symbol string, amount float64, price float64, leverage int) (int, error) {
+func (a *API) Buy(ctx context.Context, symbol string, amount, price float64, leverage int) (int, error) {
 	lev := float64(leverage)
 	basis := schema.BuyParametersBasisStake
 
@@ -40,7 +40,7 @@ func (a *API) Buy(ctx context.Context, symbol string, amount float64, price floa
 // It uses the given price, amount, and leverage to configure the order.
 // Accepts ctx for request lifecycle management, symbol for the market asset, amount as the quantity to sell, price per unit, and leverage for multiplier configuration.
 // Returns the contract ID of the placed sell order and an error if the order fails due to API issues or invalid parameters.
-func (a *API) Sell(ctx context.Context, symbol string, amount float64, price float64, leverage int) (int, error) {
+func (a *API) Sell(ctx context.Context, symbol string, amount, price float64, leverage int) (int, error) {
 	lev := float64(leverage)
 	basis := schema.BuyParametersBasisStake
 
