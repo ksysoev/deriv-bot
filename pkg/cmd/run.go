@@ -30,7 +30,7 @@ func runAllServices(ctx context.Context, args *cmdArgs) error {
 
 	exec := executor.New(marketSignals, derivApi)
 
-	err = exec.ExecuteStrategy(ctx, "R_100", 10, func(tick signal.Tick) bool {
+	err = exec.ExecuteStrategy(ctx, args.Token, "R_100", 10, func(tick signal.Tick) bool {
 		return true
 	})
 	if err != nil {

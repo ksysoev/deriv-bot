@@ -13,14 +13,19 @@ import (
 // Returns the contract ID of the placed buy order and an error if the order fails due to API issues or invalid parameters.
 func (a *API) Buy(ctx context.Context, symbol string, amount float64, price float64, leverage int) (int, error) {
 	lev := float64(leverage)
+	basis := schema.BuyParametersBasisStake
 
 	res, err := a.client.Buy(ctx, schema.Buy{
+		Buy:   "1",
 		Price: price,
 		Parameters: &schema.BuyParameters{
 			ContractType: schema.BuyParametersContractTypeMULTUP,
+			Basis:        &basis,
 			Symbol:       symbol,
 			Amount:       &amount,
+			ProductType:  schema.BuyParametersProductTypeBasic,
 			Multiplier:   &lev,
+			Currency:     "USD", // Hardcoded to USD, for simplicity, in future need to accept as a parameter
 		},
 	})
 
@@ -37,14 +42,18 @@ func (a *API) Buy(ctx context.Context, symbol string, amount float64, price floa
 // Returns the contract ID of the placed sell order and an error if the order fails due to API issues or invalid parameters.
 func (a *API) Sell(ctx context.Context, symbol string, amount float64, price float64, leverage int) (int, error) {
 	lev := float64(leverage)
+	basis := schema.BuyParametersBasisStake
 
 	res, err := a.client.Buy(ctx, schema.Buy{
 		Price: price,
 		Parameters: &schema.BuyParameters{
 			ContractType: schema.BuyParametersContractTypeMULTDOWN,
+			Basis:        &basis,
 			Symbol:       symbol,
 			Amount:       &amount,
+			ProductType:  schema.BuyParametersProductTypeBasic,
 			Multiplier:   &lev,
+			Currency:     "USD", // Hardcoded to USD, for simplicity, in future need to accept as a parameter
 		},
 	})
 
