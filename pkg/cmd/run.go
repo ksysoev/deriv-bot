@@ -3,8 +3,8 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"log/slog"
 
+	"github.com/ksysoev/deriv-bot/pkg/core/executor"
 	"github.com/ksysoev/deriv-bot/pkg/core/signal"
 	"github.com/ksysoev/deriv-bot/pkg/prov/deriv"
 )
@@ -28,13 +28,13 @@ func runAllServices(ctx context.Context, args *cmdArgs) error {
 
 	marketSignals := signal.New(derivApi)
 
-	sub, err := marketSignals.SubscribeOnMarket(ctx, "R_100")
+	exec := executor.New(marketSignals, derivApi)
+
+	err = exec.ExecuteStrategy(ctx, "R_100", 10, func(tick signal.Tick) bool {
+		return true
+	})
 	if err != nil {
 		return fmt.Errorf("failed to subscribe to ticks: %w", err)
-	}
-
-	for tick := range sub {
-		slog.Info("Received tick", slog.Any("tick", tick))
 	}
 
 	return nil
