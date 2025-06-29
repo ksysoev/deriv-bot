@@ -9,6 +9,7 @@ type BuildInfo struct {
 }
 
 type cmdArgs struct {
+	Token      string `mapstructure:"token"`
 	LogLevel   string `mapstructure:"log_level"`
 	Version    string
 	ConfigPath string `mapstructure:"config_path"`
@@ -50,6 +51,9 @@ func initRunCommand(args *cmdArgs) *cobra.Command {
 			return runAllServices(cmd.Context(), args)
 		},
 	}
+
+	// Temporary flag for token, to be removed later
+	cmdRunAll.Flags().StringVar(&args.Token, "token", "", "Deriv API token")
 
 	runCmd.AddCommand(cmdRunAll)
 
