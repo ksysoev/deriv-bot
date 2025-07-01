@@ -16,6 +16,7 @@ type TradingProvider interface {
 	Authorize(ctx context.Context, token string) error
 	Buy(ctx context.Context, symbol string, amount float64, price float64, leverage int) (int, error)
 	Sell(ctx context.Context, symbol string, amount float64, price float64, leverage int) (int, error)
+	ClosePosition(ctx context.Context, contractID int) error
 }
 
 type Service struct {
@@ -53,9 +54,14 @@ func (s *Service) ExecuteStrategy(ctx context.Context, token, symbol string, amo
 		slog.Info("Received tick", slog.Any("tick", tick))
 
 		if eval(tick) {
-			_, err := s.tradingProv.Buy(ctx, symbol, amount, tick.Quote, 10)
+			id, err := s.tradingProv.Buy(ctx, symbol, amount, tick.Quote, 10)
+			if err != nil {
+				return fmt.Errorf("failed to execute buy for symbol %s: %w", symbol, err)
+			}
 
-			return err
+			if err := s.tradingProv.ClosePosition(ctx, id); err != nil {
+				return fmt.Errorf("failed to close position for contract ID %d: %w", id, err)
+			}
 		}
 	}
 
