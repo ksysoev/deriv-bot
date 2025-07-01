@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"time"
 
 	"github.com/ksysoev/deriv-bot/pkg/core/signal"
 )
@@ -59,9 +60,13 @@ func (s *Service) ExecuteStrategy(ctx context.Context, token, symbol string, amo
 				return fmt.Errorf("failed to execute buy for symbol %s: %w", symbol, err)
 			}
 
+			time.Sleep(2 * time.Second) // Simulate some processing time
+
 			if err := s.tradingProv.ClosePosition(ctx, id); err != nil {
 				return fmt.Errorf("failed to close position for contract ID %d: %w", id, err)
 			}
+
+			return nil
 		}
 	}
 
