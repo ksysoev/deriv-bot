@@ -63,3 +63,20 @@ func (a *API) Sell(ctx context.Context, symbol string, amount, price float64, le
 
 	return res.Buy.ContractId, nil
 }
+
+// ClosePosition closes an open trading position for a given contract ID.
+// It performs a sell operation at the market price to close the position.
+// Accepts ctx to manage request lifecycle and contractID identifying the position to close.
+// Returns an error if the API request to close the position fails.
+func (a *API) ClosePosition(ctx context.Context, contractID int) error {
+	_, err := a.client.Sell(ctx, schema.Sell{
+		Sell:  contractID,
+		Price: 0, // Sell at market price, we may want to allow specifying a price in the future
+	})
+
+	if err != nil {
+		return fmt.Errorf("failed to close position %d: %w", contractID, err)
+	}
+
+	return nil
+}
