@@ -76,7 +76,7 @@ func (s *Service) ExecuteStrategy(ctx context.Context, stategy Strategy) error {
 			}
 
 			if err != nil {
-				return fmt.Errorf("failed to execute buy for symbol %s: %w", acc.ID, err)
+				return fmt.Errorf("failed to open position for symbol %s: %w", acc.ID, err)
 			}
 
 			continue
