@@ -1,5 +1,7 @@
 package executor
 
+import "github.com/ksysoev/deriv-bot/pkg/core/signal"
+
 type StrategyType int
 
 const (
@@ -11,9 +13,9 @@ const (
 type Strategy struct {
 	Token        string
 	Symbol       string
-	Amount       string
+	Amount       float64
 	Type         StrategyType
 	Leverage     int
-	CheckToOpen  func(any) bool
-	CheckToClose func(any) bool
+	CheckToOpen  func(tick signal.Tick) bool
+	CheckToClose func(tick signal.Tick) bool
 }

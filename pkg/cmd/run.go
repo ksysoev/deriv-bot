@@ -30,9 +30,23 @@ func runAllServices(ctx context.Context, args *cmdArgs) error {
 
 	exec := executor.New(marketSignals, derivApi)
 
-	err = exec.ExecuteStrategy(ctx, args.Token, "R_100", 10, func(tick signal.Tick) bool {
-		return true
-	})
+	initPrice := float64(0)
+	strategy := executor.Strategy{
+		Token:    args.Token,
+		Symbol:   "R_100",
+		Amount:   10,
+		Type:     executor.StrategyTypeBuy,
+		Leverage: 10,
+		CheckToOpen: func(tick signal.Tick) bool {
+			initPrice = tick.Quote
+			return true
+		},
+		CheckToClose: func(tick signal.Tick) bool {
+			return tick.Quote > initPrice*1.01
+		},
+	}
+
+	err = exec.ExecuteStrategy(ctx, strategy)
 	if err != nil {
 		return fmt.Errorf("failed to subscribe to ticks: %w", err)
 	}
