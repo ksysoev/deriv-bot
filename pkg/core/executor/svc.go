@@ -3,8 +3,6 @@ package executor
 import (
 	"context"
 	"fmt"
-	"log/slog"
-	"time"
 
 	"github.com/ksysoev/deriv-bot/pkg/core/signal"
 )
@@ -14,9 +12,9 @@ type MarketSignals interface {
 }
 
 type TradingProvider interface {
-	Authorize(ctx context.Context, token string) error
-	Buy(ctx context.Context, symbol string, amount float64, price float64, leverage int) (int, error)
-	Sell(ctx context.Context, symbol string, amount float64, price float64, leverage int) (int, error)
+	Authorize(ctx context.Context, token string) (*Account, error)
+	Buy(ctx context.Context, pos Position) (int, error)
+	Sell(ctx context.Context, pos Position) (int, error)
 	ClosePosition(ctx context.Context, contractID int) error
 }
 
@@ -41,32 +39,57 @@ func New(marketSignals MarketSignals, tradingProv TradingProvider) *Service {
 // symbol specifies the market symbol to trade, and amount is the quantity to buy.
 // eval is a callback function that evaluates tick data to decide when to trigger the buy action.
 // Returns the transaction ID of the buy operation and an error if subscribing to market signals or executing the buy fails.
-func (s *Service) ExecuteStrategy(ctx context.Context, token, symbol string, amount float64, eval func(tick signal.Tick) bool) error {
-	if err := s.tradingProv.Authorize(ctx, token); err != nil {
+func (s *Service) ExecuteStrategy(ctx context.Context, stategy Strategy) error {
+	acc, err := s.tradingProv.Authorize(ctx, stategy.Token)
+	if err != nil {
 		return fmt.Errorf("failed to authorize trading provider: %w", err)
 	}
 
-	tickChan, err := s.marketSignals.SubscribeOnMarket(ctx, symbol)
+	tickChan, err := s.marketSignals.SubscribeOnMarket(ctx, stategy.Symbol)
 	if err != nil {
 		return err
 	}
 
+	cid := 0
+
 	for tick := range tickChan {
-		slog.Info("Received tick", slog.Any("tick", tick))
+		if cid == 0 && stategy.CheckToOpen(tick) {
+			var err error
 
-		if eval(tick) {
-			id, err := s.tradingProv.Buy(ctx, symbol, amount, tick.Quote, 10)
+			pos := Position{
+				Symbol:   stategy.Symbol,
+				Amount:   stategy.Amount,
+				Leverage: stategy.Leverage,
+				Price:    tick.Quote,
+				Currency: acc.Currency,
+			}
+
+			switch stategy.Type {
+			case StrategyTypeBuy:
+				cid, err = s.tradingProv.Buy(ctx, pos)
+			case StrategyTypeSell:
+				cid, err = s.tradingProv.Sell(ctx, pos)
+			case StrategyTypeNotSet:
+				return fmt.Errorf("strategy type not set")
+			default:
+				return fmt.Errorf("unknown strategy type: %d", stategy.Type)
+			}
+
 			if err != nil {
-				return fmt.Errorf("failed to execute buy for symbol %s: %w", symbol, err)
+				return fmt.Errorf("failed to open position for symbol %s: %w", acc.ID, err)
 			}
 
-			time.Sleep(2 * time.Second) // Simulate some processing time
+			continue
+		}
 
-			if err := s.tradingProv.ClosePosition(ctx, id); err != nil {
-				return fmt.Errorf("failed to close position for contract ID %d: %w", id, err)
+		if cid != 0 && stategy.CheckToClose(tick) {
+			if err := s.tradingProv.ClosePosition(ctx, cid); err != nil {
+				return fmt.Errorf("failed to close position for account %s contract ID %d: %w", acc.ID, cid, err)
 			}
 
-			return nil
+			cid = 0 // Reset contract ID after closing position
+
+			continue
 		}
 	}
 

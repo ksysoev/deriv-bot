@@ -7,6 +7,7 @@ import (
 
 	"github.com/ksysoev/deriv-api"
 	"github.com/ksysoev/deriv-api/schema"
+	"github.com/ksysoev/deriv-bot/pkg/core/executor"
 )
 
 const (
@@ -44,11 +45,14 @@ func (a *API) Close() {
 	a.wg.Wait()
 }
 
-func (a *API) Authorize(ctx context.Context, token string) error {
-	_, err := a.client.Authorize(ctx, schema.Authorize{Authorize: token})
+func (a *API) Authorize(ctx context.Context, token string) (*executor.Account, error) {
+	res, err := a.client.Authorize(ctx, schema.Authorize{Authorize: token})
 	if err != nil {
-		return fmt.Errorf("failed to authorize with Deriv API: %w", err)
+		return nil, fmt.Errorf("failed to authorize with Deriv API: %w", err)
 	}
 
-	return nil
+	return &executor.Account{
+		ID:       *res.Authorize.Loginid,
+		Currency: *res.Authorize.Currency,
+	}, nil
 }
