@@ -5,32 +5,32 @@ import (
 	"fmt"
 
 	"github.com/ksysoev/deriv-api/schema"
+	"github.com/ksysoev/deriv-bot/pkg/core/executor"
 )
 
 // Buy places a buy order for a specified symbol with given parameters.
 // It uses the provided price, amount, and leverage to configure the order.
 // Accepts ctx for request lifecycle management, symbol, the asset's market symbol, amount as the quantity to buy, price for the transaction, and leverage specifying the multiplier.
 // Returns the contract ID of the placed buy order and an error if the order fails due to API issues or invalid parameters.
-func (a *API) Buy(ctx context.Context, symbol string, amount, price float64, leverage int) (int, error) {
-	lev := float64(leverage)
+func (a *API) Buy(ctx context.Context, pos executor.Position) (int, error) {
 	basis := schema.BuyParametersBasisStake
 
 	res, err := a.client.Buy(ctx, schema.Buy{
 		Buy:   "1",
-		Price: price,
+		Price: pos.Price,
 		Parameters: &schema.BuyParameters{
 			ContractType: schema.BuyParametersContractTypeMULTUP,
 			Basis:        &basis,
-			Symbol:       symbol,
-			Amount:       &amount,
+			Symbol:       pos.Symbol,
+			Amount:       &pos.Amount,
 			ProductType:  schema.BuyParametersProductTypeBasic,
-			Multiplier:   &lev,
-			Currency:     "USD", // Hardcoded to USD, for simplicity, in future need to accept as a parameter
+			Multiplier:   &pos.Leverage,
+			Currency:     pos.Currency, // Hardcoded to USD, for simplicity, in future need to accept as a parameter
 		},
 	})
 
 	if err != nil {
-		return 0, fmt.Errorf("failed to place buy order for symbol %s: %w", symbol, err)
+		return 0, fmt.Errorf("failed to place buy order for symbol %s: %w", pos.Symbol, err)
 	}
 
 	return res.Buy.ContractId, nil
@@ -40,25 +40,24 @@ func (a *API) Buy(ctx context.Context, symbol string, amount, price float64, lev
 // It uses the given price, amount, and leverage to configure the order.
 // Accepts ctx for request lifecycle management, symbol for the market asset, amount as the quantity to sell, price per unit, and leverage for multiplier configuration.
 // Returns the contract ID of the placed sell order and an error if the order fails due to API issues or invalid parameters.
-func (a *API) Sell(ctx context.Context, symbol string, amount, price float64, leverage int) (int, error) {
-	lev := float64(leverage)
+func (a *API) Sell(ctx context.Context, pos executor.Position) (int, error) {
 	basis := schema.BuyParametersBasisStake
 
 	res, err := a.client.Buy(ctx, schema.Buy{
-		Price: price,
+		Price: pos.Price,
 		Parameters: &schema.BuyParameters{
 			ContractType: schema.BuyParametersContractTypeMULTDOWN,
 			Basis:        &basis,
-			Symbol:       symbol,
-			Amount:       &amount,
+			Symbol:       pos.Symbol,
+			Amount:       &pos.Amount,
 			ProductType:  schema.BuyParametersProductTypeBasic,
-			Multiplier:   &lev,
-			Currency:     "USD", // Hardcoded to USD, for simplicity, in future need to accept as a parameter
+			Multiplier:   &pos.Leverage,
+			Currency:     pos.Currency, // Hardcoded to USD, for simplicity, in future need to accept as a parameter
 		},
 	})
 
 	if err != nil {
-		return 0, fmt.Errorf("failed to place sell order for symbol %s: %w", symbol, err)
+		return 0, fmt.Errorf("failed to place sell order for symbol %s: %w", pos.Symbol, err)
 	}
 
 	return res.Buy.ContractId, nil
