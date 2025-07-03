@@ -12,9 +12,9 @@ type MarketSignals interface {
 }
 
 type TradingProvider interface {
-	Authorize(ctx context.Context, token string) error
-	Buy(ctx context.Context, symbol string, amount float64, price float64, leverage int) (int, error)
-	Sell(ctx context.Context, symbol string, amount float64, price float64, leverage int) (int, error)
+	Authorize(ctx context.Context, token string) (*Account, error)
+	Buy(ctx context.Context, pos Position) (int, error)
+	Sell(ctx context.Context, pos Position) (int, error)
 	ClosePosition(ctx context.Context, contractID int) error
 }
 
@@ -40,7 +40,8 @@ func New(marketSignals MarketSignals, tradingProv TradingProvider) *Service {
 // eval is a callback function that evaluates tick data to decide when to trigger the buy action.
 // Returns the transaction ID of the buy operation and an error if subscribing to market signals or executing the buy fails.
 func (s *Service) ExecuteStrategy(ctx context.Context, stategy Strategy) error {
-	if err := s.tradingProv.Authorize(ctx, stategy.Token); err != nil {
+	acc, err := s.tradingProv.Authorize(ctx, stategy.Token)
+	if err != nil {
 		return fmt.Errorf("failed to authorize trading provider: %w", err)
 	}
 
@@ -55,11 +56,19 @@ func (s *Service) ExecuteStrategy(ctx context.Context, stategy Strategy) error {
 		if cid == 0 && stategy.CheckToOpen(tick) {
 			var err error
 
+			pos := Position{
+				Symbol:   stategy.Symbol,
+				Amount:   stategy.Amount,
+				Leverage: stategy.Leverage,
+				Price:    tick.Quote,
+				Currency: acc.Currency,
+			}
+
 			switch stategy.Type {
 			case StrategyTypeBuy:
-				cid, err = s.tradingProv.Buy(ctx, stategy.Symbol, stategy.Amount, tick.Quote, stategy.Leverage)
+				cid, err = s.tradingProv.Buy(ctx, pos)
 			case StrategyTypeSell:
-				cid, err = s.tradingProv.Sell(ctx, stategy.Symbol, stategy.Amount, tick.Quote, stategy.Leverage)
+				cid, err = s.tradingProv.Sell(ctx, pos)
 			case StrategyTypeNotSet:
 				return fmt.Errorf("strategy type not set")
 			default:

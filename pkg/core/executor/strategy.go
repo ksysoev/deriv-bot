@@ -15,7 +15,7 @@ type Strategy struct {
 	Symbol       string
 	Amount       float64
 	Type         StrategyType
-	Leverage     int
+	Leverage     float64
 	CheckToOpen  func(tick signal.Tick) bool
 	CheckToClose func(tick signal.Tick) bool
 }
