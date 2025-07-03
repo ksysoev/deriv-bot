@@ -76,7 +76,7 @@ func (s *Service) ExecuteStrategy(ctx context.Context, stategy Strategy) error {
 			}
 
 			if err != nil {
-				return fmt.Errorf("failed to execute buy for symbol %s: %w", stategy.Amount, err)
+				return fmt.Errorf("failed to execute buy for symbol %s: %w", acc.ID, err)
 			}
 
 			continue
@@ -84,7 +84,7 @@ func (s *Service) ExecuteStrategy(ctx context.Context, stategy Strategy) error {
 
 		if cid != 0 && stategy.CheckToClose(tick) {
 			if err := s.tradingProv.ClosePosition(ctx, cid); err != nil {
-				return fmt.Errorf("failed to close position for contract ID %d: %w", cid, err)
+				return fmt.Errorf("failed to close position for account %s contract ID %d: %w", acc.ID, cid, err)
 			}
 
 			cid = 0 // Reset contract ID after closing position

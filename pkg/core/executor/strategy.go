@@ -11,11 +11,11 @@ const (
 )
 
 type Strategy struct {
+	CheckToOpen  func(tick signal.Tick) bool
+	CheckToClose func(tick signal.Tick) bool
 	Token        string
 	Symbol       string
 	Amount       float64
 	Type         StrategyType
 	Leverage     float64
-	CheckToOpen  func(tick signal.Tick) bool
-	CheckToClose func(tick signal.Tick) bool
 }
