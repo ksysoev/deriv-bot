@@ -7,6 +7,7 @@ import (
 	"github.com/ksysoev/deriv-bot/pkg/core/executor"
 	"github.com/ksysoev/deriv-bot/pkg/core/signal"
 	"github.com/ksysoev/deriv-bot/pkg/prov/deriv"
+	"github.com/ksysoev/deriv-bot/pkg/repo/subsmng"
 )
 
 func runAllServices(ctx context.Context, args *cmdArgs) error {
@@ -26,7 +27,7 @@ func runAllServices(ctx context.Context, args *cmdArgs) error {
 
 	defer derivApi.Close()
 
-	marketSignals := signal.New(derivApi)
+	marketSignals := signal.New(derivApi, subsmng.New())
 
 	exec := executor.New(marketSignals, derivApi)
 
