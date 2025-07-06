@@ -39,6 +39,7 @@ func New(prov MarketProvider, subMgr SubscribtionManager) *Service {
 func (s *Service) SubscribeOnMarket(ctx context.Context, symbol string) (<-chan Tick, error) {
 	res := s.fg.DoChan(symbol, func() (interface{}, error) {
 		s.subMgr.GetMarketSubscription(symbol)
+
 		if sub, ok := s.subMgr.GetMarketSubscription(symbol); ok {
 			return sub, nil
 		}

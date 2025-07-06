@@ -29,6 +29,7 @@ func (s *SubscriptionManager) GetMarketSubscription(symbol string) (<-chan signa
 	defer s.mu.Unlock()
 
 	sub, ok := s.subs[symbol]
+
 	return sub, ok
 }
 
