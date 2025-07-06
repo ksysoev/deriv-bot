@@ -9,16 +9,23 @@ type MarketProvider interface {
 	SubscribeToTicks(ctx context.Context, symbol string) (<-chan Tick, error)
 }
 
+type SubscribtionManager interface {
+	GetMarketSubscription(symbol string) (<-chan Tick, bool)
+	SetMarketSubscription(symbol string, sub <-chan Tick)
+}
+
 type Service struct {
 	markerProv MarketProvider
+	subMgr     SubscribtionManager
 }
 
 // New creates and initializes a new Service instance with the provided MarketProvider.
 // It requires a valid prov implementing the MarketProvider interface.
 // Returns a pointer to the newly created Service.
-func New(prov MarketProvider) *Service {
+func New(prov MarketProvider, subMgr SubscribtionManager) *Service {
 	return &Service{
 		markerProv: prov,
+		subMgr:     subMgr,
 	}
 }
 
